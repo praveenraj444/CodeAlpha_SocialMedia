@@ -1,0 +1,269 @@
+{% extends 'social_app/base.html' %}
+{% load static %}
+{% block title %}Home — CodeAlpha Social{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="feed-container">
+
+        {% if not posts %}
+        <div class="empty-state">
+            <i class="bi bi-camera"></i>
+            <h5>No posts yet</h5>
+            <p>Be the first to share something!</p>
+            <a href="{% url 'create_post' %}" class="btn btn-primary mt-2">Create Post</a>
+        </div>
+        {% endif %}
+
+        {% for post in posts %}
+        <div class="post-card" data-post-id="{{ post.id }}">
+
+            <!-- HEADER -->
+            <div class="post-header">
+                <a href="{% url 'user_profile' post.user.username %}">
+                    {% if post.user.profile.profile_pic %}
+                    <img src="{{ post.user.profile.profile_pic.url }}" class="post-avatar" alt="user">
+                    {% else %}
+                    <img src="{% static 'images/default.png' %}" class="post-avatar" alt="user">
+                    {% endif %}
+                </a>
+                <div class="flex-grow-1">
+                    <a href="{% url 'user_profile' post.user.username %}" class="post-username">
+                        {{ post.user.username }}
+                    </a>
+                    <div class="post-time">{{ post.created_at|date:"M d, Y" }}</div>
+                </div>
+
+                {% if post.user == user %}
+                <form method="POST" action="{% url 'delete_post' post.id %}" 
+                      onsubmit="return confirm('Delete this post?');">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-sm text-danger border-0">
+                        <i class="bi bi-trash"></i>
+                    </button>
+                </form>
+                {% endif %}
+            </div>
+
+            <!-- MEDIA -->
+            <div class="post-media">
+                {% if post.image %}
+                    <img src="{{ post.image.url }}" alt="post">
+                
+                {% elif post.youtube_video_id %}
+                    <!-- YouTube Embed + Fallback Button -->
+                    <div class="youtube-wrapper">
+                        <iframe src="https://www.youtube.com/embed/{{ post.youtube_video_id }}"
+                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                                referrerpolicy="strict-origin-when-cross-origin"
+                                allowfullscreen loading="lazy"></iframe>
+                        <div class="text-center py-2 bg-light border-top">
+                            <a href="https://www.youtube.com/watch?v={{ post.youtube_video_id }}"
+                               target="_blank" rel="noopener" 
+                               class="btn btn-sm btn-danger">
+                                <i class="bi bi-youtube"></i> Watch on YouTube
+                            </a>
+                        </div>
+                    </div>
+                
+                {% elif post.instagram_url %}
+                    <div class="insta-preview">
+                        <i class="bi bi-instagram insta-icon"></i>
+                        <h5 class="mb-2">Instagram Post</h5>
+                        <p class="small mb-3">Click below to view on Instagram</p>
+                        <a href="{{ post.instagram_url }}" target="_blank" rel="noopener" class="btn-insta">
+                            Watch on Instagram <i class="bi bi-box-arrow-up-right ms-1"></i>
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+
+            <!-- ACTIONS -->
+            <div class="post-actions">
+                <button class="action-btn like-btn {% if post.id in user_liked_ids %}liked{% endif %}"
+                        data-post-id="{{ post.id }}"
+                        title="Like">
+                    <i class="bi {% if post.id in user_liked_ids %}bi-heart-fill{% else %}bi-heart{% endif %}"></i>
+                </button>
+                <span class="like-count" data-post-id="{{ post.id }}">
+                    {{ post.total_likes }} like{{ post.total_likes|pluralize }}
+                </span>
+
+                <i class="bi bi-chat ms-3"></i>
+                <span class="comment-count" data-post-id="{{ post.id }}">
+                    {{ post.total_comments }} comment{{ post.total_comments|pluralize }}
+                </span>
+            </div>
+
+            <!-- CAPTION -->
+            {% if post.caption %}
+            <div class="post-caption">
+                <span class="username">{{ post.user.username }}</span>
+                {{ post.caption }}
+            </div>
+            {% endif %}
+
+            <!-- COMMENTS -->
+            <div class="comments-section" id="comments-{{ post.id }}">
+                {% for comment in post.comments.all %}
+                <div class="comment-item">
+                    <a href="{% url 'user_profile' comment.user.username %}" class="comment-user">
+                        {{ comment.user.username }}
+                    </a>
+                    <span class="comment-text">{{ comment.text }}</span>
+                </div>
+                {% endfor %}
+            </div>
+
+            <!-- COMMENT FORM -->
+            <form class="comment-form comment-submit-form" data-post-id="{{ post.id }}">
+                {% csrf_token %}
+                <input type="text" class="comment-input comment-text-input"
+                       placeholder="Add a comment..." maxlength="300" autocomplete="off">
+                <button type="submit" class="comment-submit" disabled>Post</button>
+            </form>
+        </div>
+        {% endfor %}
+
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// ─────────────────────────────────────────
+// CSRF TOKEN GETTER
+// ─────────────────────────────────────────
+function getCSRFToken() {
+    const name = 'csrftoken';
+    const cookies = document.cookie.split(';');
+    for (let c of cookies) {
+        c = c.trim();
+        if (c.startsWith(name + '=')) return decodeURIComponent(c.substring(name.length + 1));
+    }
+    return '';
+}
+
+// ─────────────────────────────────────────
+// LIKE / UNLIKE (AJAX)
+// ─────────────────────────────────────────
+document.querySelectorAll('.like-btn').forEach(btn => {
+    btn.addEventListener('click', function () {
+        const postId = this.dataset.postId;
+        const icon = this.querySelector('i');
+        const countSpan = document.querySelector(`.like-count[data-post-id="${postId}"]`);
+
+        document.querySelectorAll('.like-btn').forEach(btn => {
+    btn.addEventListener('click', function () {
+        const postId = this.dataset.postId;
+        const icon = this.querySelector('i');
+        const countSpan = document.querySelector(`.like-count[data-post-id="${postId}"]`);
+        
+        // Prevent double-click
+        if (this.disabled) return;
+        this.disabled = true;
+
+        fetch(`/post/${postId}/like/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': getCSRFToken(),
+                'X-Requested-With': 'XMLHttpRequest',
+            }
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.liked) {
+                this.classList.add('liked');
+                icon.classList.remove('bi-heart');
+                icon.classList.add('bi-heart-fill');
+            } else {
+                this.classList.remove('liked');
+                icon.classList.remove('bi-heart-fill');
+                icon.classList.add('bi-heart');
+            }
+            countSpan.textContent = `${data.total_likes} like${data.total_likes === 1 ? '' : 's'}`;
+        })
+            .catch(err => console.error('Like error:', err))
+            .finally(() => {
+                 this.disabled = false;
+            });
+        });
+        });
+    });
+});
+
+// ─────────────────────────────────────────
+// COMMENT — enable/disable submit
+// ─────────────────────────────────────────
+document.querySelectorAll('.comment-text-input').forEach(input => {
+    const form = input.closest('form');
+    const submitBtn = form.querySelector('.comment-submit');
+
+    input.addEventListener('input', function () {
+        submitBtn.disabled = this.value.trim().length === 0;
+    });
+});
+
+// ─────────────────────────────────────────
+// COMMENT SUBMIT (AJAX)
+// ─────────────────────────────────────────
+document.querySelectorAll('.comment-submit-form').forEach(form => {
+    form.addEventListener('submit', function (e) {
+        e.preventDefault();
+
+        const postId = this.dataset.postId;
+        const input = this.querySelector('.comment-text-input');
+        const submitBtn = this.querySelector('.comment-submit');
+        const text = input.value.trim();
+
+        if (!text) return;
+
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
+
+        fetch(`/post/${postId}/comment/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': getCSRFToken(),
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-Requested-With': 'XMLHttpRequest',
+            },
+            body: `text=${encodeURIComponent(text)}`
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.error) {
+                alert(data.error);
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Post';
+                return;
+            }
+
+            // Append new comment
+            const commentsSection = document.getElementById(`comments-${postId}`);
+            const div = document.createElement('div');
+            div.className = 'comment-item';
+            div.innerHTML = `<a class="comment-user">${data.username}</a><span class="comment-text">${data.text}</span>`;
+            commentsSection.appendChild(div);
+
+            // Scroll to bottom
+            commentsSection.scrollTop = commentsSection.scrollHeight;
+
+            // Update count
+            const countSpan = document.querySelector(`.comment-count[data-post-id="${postId}"]`);
+            countSpan.textContent = `${data.total_comments} comment${data.total_comments === 1 ? '' : 's'}`;
+
+            // Clear input
+            input.value = '';
+            submitBtn.textContent = 'Post';
+            submitBtn.disabled = true;
+        })
+        .catch(err => {
+            console.error('Comment error:', err);
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Post';
+        });
+    });
+});
+</script>
+{% endblock %}

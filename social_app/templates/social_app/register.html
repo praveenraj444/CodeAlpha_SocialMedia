@@ -1,0 +1,52 @@
+{% extends 'social_app/base.html' %}
+{% block title %}Register — CodeAlpha Social{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="auth-container">
+        <div class="auth-logo brand-gradient">CodeAlpha</div>
+        <p class="auth-subtitle">Sign up to see photos from your friends</p>
+
+        <form method="POST">
+            {% csrf_token %}
+
+            {% if form.errors %}
+            <div class="alert alert-danger py-2 small">
+                {% for field, errors in form.errors.items %}
+                    {% for error in errors %}
+                        <div>{{ error }}</div>
+                    {% endfor %}
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            <div class="mb-3">
+                {{ form.username }}
+            </div>
+
+            <div class="mb-3">
+                {{ form.email }}
+            </div>
+
+            <div class="mb-3">
+                {{ form.password1 }}
+            </div>
+
+            <div class="mb-3">
+                {{ form.password2 }}
+            </div>
+
+            <button type="submit" class="btn btn-primary w-100 py-2">
+                Sign Up
+            </button>
+        </form>
+
+        <div class="divider-or my-4">OR</div>
+
+        <p class="text-center mb-0">
+            Already have an account?
+            <a href="{% url 'login' %}" class="text-decoration-none fw-semibold">Log In</a>
+        </p>
+    </div>
+</div>
+{% endblock %}

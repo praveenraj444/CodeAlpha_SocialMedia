@@ -1,0 +1,112 @@
+{% extends 'social_app/base.html' %}
+{% load static %}
+{% block title %}Create Post — CodeAlpha Social{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="create-post-card">
+        <h4 class="fw-bold mb-4 text-center">Create New Post</h4>
+
+        <form method="POST" enctype="multipart/form-data" id="postForm">
+            {% csrf_token %}
+
+            {% if form.errors %}
+            <div class="alert alert-danger py-2 small">
+                {% for field, errors in form.errors.items %}
+                    {% for error in errors %}
+                        <div>{{ error }}</div>
+                    {% endfor %}
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            <!-- ═══════════════════════════════════════ -->
+            <!-- OPTION 1: IMAGE UPLOAD -->
+            <!-- ═══════════════════════════════════════ -->
+            <div class="media-section">
+                <label class="media-label">
+                    <i class="bi bi-image text-primary"></i> Upload Image
+                </label>
+                {{ form.image }}
+                <div id="imagePreview" class="mt-3"></div>
+            </div>
+
+            <div class="divider-or">OR</div>
+
+            <!-- ═══════════════════════════════════════ -->
+            <!-- OPTION 2: YOUTUBE SEARCH -->
+            <!-- ═══════════════════════════════════════ -->
+            <div class="media-section">
+                <label class="media-label">
+                    <i class="bi bi-youtube text-danger"></i> Search YouTube
+                </label>
+
+                <div class="input-group">
+                    <input type="text" id="ytSearchInput" class="form-control" 
+                           placeholder="e.g., KGF trailer">
+                    <button type="button" id="ytSearchBtn" class="btn btn-primary">
+                        <i class="bi bi-search"></i> Search
+                    </button>
+                </div>
+
+                <div id="ytLoading" class="text-center my-3 d-none">
+                    <div class="spinner-border spinner-border-sm text-primary"></div>
+                    <span class="ms-2 small text-muted">Searching...</span>
+                </div>
+
+                <div id="ytError" class="alert alert-danger py-2 small mt-3 d-none"></div>
+
+                <div id="ytResults" class="yt-results"></div>
+
+                <!-- Selected video preview -->
+                <div id="ytSelected" class="yt-preview d-none">
+                    <img id="ytSelectedThumb" src="" alt="Selected">
+                    <div class="flex-grow-1">
+                        <div class="fw-semibold small" id="ytSelectedTitle"></div>
+                        <div class="small text-muted">Selected YouTube video</div>
+                    </div>
+                    <button type="button" class="btn btn-sm btn-outline-danger" id="ytRemoveBtn">
+                        <i class="bi bi-x-lg"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div class="divider-or">OR</div>
+
+            <!-- ═══════════════════════════════════════ -->
+            <!-- OPTION 3: INSTAGRAM URL -->
+            <!-- ═══════════════════════════════════════ -->
+            <div class="media-section">
+                <label class="media-label">
+                    <i class="bi bi-instagram text-danger"></i> Instagram URL
+                </label>
+                {{ form.instagram_url }}
+                <small class="text-muted d-block mt-2">
+                    Paste Instagram reel or post URL
+                </small>
+            </div>
+
+            <!-- Hidden YouTube fields (JS fills) -->
+            {{ form.youtube_video_id }}
+            {{ form.youtube_title }}
+            {{ form.youtube_thumbnail }}
+
+            <!-- Caption -->
+            <div class="mb-3 mt-4">
+                <label class="media-label">
+                    <i class="bi bi-chat-text"></i> Caption
+                </label>
+                {{ form.caption }}
+            </div>
+
+            <button type="submit" class="btn btn-primary w-100 py-2 fw-semibold">
+                Share Post
+            </button>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/create_post.js' %}"></script>
+{% endblock %}

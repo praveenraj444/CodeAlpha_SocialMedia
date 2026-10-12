@@ -1,0 +1,48 @@
+{% extends 'social_app/base.html' %}
+{% load static %}
+{% block title %}Edit Profile — CodeAlpha Social{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="auth-container" style="max-width: 500px;">
+        <h4 class="fw-bold mb-4 text-center">Edit Profile</h4>
+
+        <form method="POST" enctype="multipart/form-data">
+            {% csrf_token %}
+
+            <div class="mb-3">
+                <label class="form-label fw-semibold">Username</label>
+                {{ u_form.username }}
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label fw-semibold">Email</label>
+                {{ u_form.email }}
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label fw-semibold">Bio</label>
+                {{ p_form.bio }}
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label fw-semibold">Profile Picture</label>
+                {{ p_form.profile_pic }}
+                {% if user.profile.profile_pic %}
+                <div class="mt-2 text-center">
+                    <img src="{{ user.profile.profile_pic.url }}" 
+                         style="width: 100px; height: 100px; border-radius: 50%; object-fit: cover;">
+                </div>
+                {% endif %}
+            </div>
+
+            <button type="submit" class="btn btn-primary w-100 py-2 mt-3">
+                Save Changes
+            </button>
+            <a href="{% url 'profile' %}" class="btn btn-outline-secondary w-100 py-2 mt-2">
+                Cancel
+            </a>
+        </form>
+    </div>
+</div>
+{% endblock %}
