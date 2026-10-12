@@ -892,9 +892,9 @@ MIT License — feel free to use this project for learning purposes.
 
 ## 👨‍💻 Author
 
-**[Your Name]**
-- GitHub: [@YOUR_USERNAME](https://github.com/YOUR_USERNAME)
-- LinkedIn: [Your LinkedIn](# CodeAlpha_SocialMedia
+**[PRAVEENRAJ M]**
+- GitHub: [@praveenraj444](https://github.com/praveenraj444)
+- LinkedIn: [@Praveenraj M](https://www.linkedin.com/in/praveenrajm2021/?isSelfProfile=true)
 
 An Instagram-style social media platform built with Django — a full-stack web application featuring image uploads, YouTube video embedding, Instagram URL sharing, follow system, real-time notifications, and dark mode.
 
