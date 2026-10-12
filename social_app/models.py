@@ -20,7 +20,18 @@ class Profile(models.Model):
         default='profile_pics/default.png',
         blank=True
     )
+    def followers_count(self):
+        return self.user.followers_set.count()
 
+    def following_count(self):
+        return self.user.following_set.count()
+
+    def is_followed_by(self, user):
+        """Check if given user follows this profile's user."""
+        if not user.is_authenticated:
+            return False
+        return Follow.objects.filter(follower=user, following=self.user).exists()
+    
     def __str__(self):
         return f"{self.user.username}'s Profile"
 
@@ -121,6 +132,93 @@ class Comment(models.Model):
 
     def __str__(self):
         return f"{self.user.username}: {self.text[:30]}"
+
+        # ─────────────────────────────────────────────────────────
+# FOLLOW MODEL
+# ─────────────────────────────────────────────────────────
+class Follow(models.Model):
+    """
+    User A follows User B.
+    A = follower (who follows)
+    B = following (being followed)
+    """
+    follower = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name='following_set'
+    )
+    following = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name='followers_set'
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('follower', 'following')
+
+    def __str__(self):
+        return f"{self.follower.username} → {self.following.username}"
+
+    # ─────────────────────────────────────────────────────────
+# NOTIFICATION MODEL
+# ─────────────────────────────────────────────────────────
+class Notification(models.Model):
+    """
+    Notifications for like, comment, follow events.
+    """
+    NOTIFICATION_TYPES = [
+        ('like', 'Like'),
+        ('comment', 'Comment'),
+        ('follow', 'Follow'),
+    ]
+
+    recipient = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name='notifications'
+    )
+    sender = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name='sent_notifications'
+    )
+    notification_type = models.CharField(max_length=10, choices=NOTIFICATION_TYPES)
+
+    post = models.ForeignKey(
+        Post, on_delete=models.CASCADE, null=True, blank=True
+    )
+    comment = models.ForeignKey(
+        Comment, on_delete=models.CASCADE, null=True, blank=True
+    )
+
+    is_read = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"{self.sender.username} → {self.recipient.username} ({self.notification_type})"
+
+    def get_message(self):
+        if self.notification_type == 'like':
+            return f"{self.sender.username} liked your post"
+        elif self.notification_type == 'comment':
+            return f"{self.sender.username} commented on your post"
+        elif self.notification_type == 'follow':
+            return f"{self.sender.username} started following you"
+        return "New notification"
+
+    def get_icon(self):
+        if self.notification_type == 'like':
+            return 'bi-heart-fill'
+        elif self.notification_type == 'comment':
+            return 'bi-chat-fill'
+        elif self.notification_type == 'follow':
+            return 'bi-person-plus-fill'
+        return 'bi-bell'
+
+    def get_color(self):
+        if self.notification_type == 'like':
+            return 'text-danger'
+        elif self.notification_type == 'comment':
+            return 'text-primary'
+        elif self.notification_type == 'follow':
+            return 'text-success'
+        return 'text-secondary'
 
 
 # ─────────────────────────────────────────────────────────

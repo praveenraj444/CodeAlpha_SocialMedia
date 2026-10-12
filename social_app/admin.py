@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Profile, Post, Like, Comment
+from .models import Profile, Post, Like, Comment, Follow, Notification
 
 
 # ─────────────────────────────────────────────────────────
@@ -60,3 +60,14 @@ class CommentAdmin(admin.ModelAdmin):
     def text_short(self, obj):
         return obj.text[:50] + '...' if len(obj.text) > 50 else obj.text
     text_short.short_description = 'Comment'
+
+    @admin.register(Follow)
+    class FollowAdmin(admin.ModelAdmin):
+          list_display = ('id', 'follower', 'following', 'created_at')
+          search_fields = ('follower__username', 'following__username')
+
+    @admin.register(Notification)
+    class NotificationAdmin(admin.ModelAdmin):
+          list_display = ('id', 'sender', 'recipient', 'notification_type', 'is_read', 'created_at')
+          list_filter = ('notification_type', 'is_read', 'created_at')
+          search_fields = ('sender__username', 'recipient__username')

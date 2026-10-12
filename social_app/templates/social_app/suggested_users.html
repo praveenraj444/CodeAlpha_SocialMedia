@@ -1,0 +1,39 @@
+{% extends 'social_app/base.html' %}
+{% load static %}
+{% block title %}Suggested Users — CodeAlpha Social{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="feed-container" style="max-width: 600px;">
+        <div class="post-card p-4">
+            <h5 class="fw-bold mb-3">
+                <i class="bi bi-stars text-primary"></i> Suggested for You
+            </h5>
+
+            {% for u in suggested_users %}
+            <div class="d-flex align-items-center gap-3 py-3 border-bottom">
+                <a href="{% url 'user_profile' u.username %}">
+                    {% if u.profile.profile_pic %}
+                        <img src="{{ u.profile.profile_pic.url }}" class="post-avatar" alt="user">
+                    {% else %}
+                        <img src="{% static 'images/default.png' %}" class="post-avatar" alt="user">
+                    {% endif %}
+                </a>
+                <div class="flex-grow-1">
+                    <a href="{% url 'user_profile' u.username %}" class="post-username">
+                        {{ u.username }}
+                    </a>
+                    <div class="post-time">{{ u.profile.bio|default:"New to CodeAlpha"|truncatechars:40 }}</div>
+                </div>
+                <a href="{% url 'user_profile' u.username %}" class="btn btn-sm btn-primary">View</a>
+            </div>
+            {% empty %}
+            <div class="empty-state py-4">
+                <i class="bi bi-people"></i>
+                <p>No suggestions yet.</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}

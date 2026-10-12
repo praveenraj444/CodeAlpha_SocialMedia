@@ -34,7 +34,21 @@ urlpatterns = [
     path('post/<int:post_id>/comment/', views.add_comment_view, name='add_comment'),
 
     # ─────────────────────────────────────────
+    # FOLLOW
+    # ─────────────────────────────────────────
+    path('follow/<str:username>/', views.follow_toggle_view, name='follow_toggle'),
+    path('profile/<str:username>/followers/', views.followers_list_view, name='followers_list'),
+    path('profile/<str:username>/following/', views.following_list_view, name='following_list'),
+    path('suggested/', views.suggested_users_view, name='suggested_users'),
+
+    # ─────────────────────────────────────────
     # YOUTUBE SEARCH (AJAX)
     # ─────────────────────────────────────────
     path('youtube-search/', views.youtube_search_view, name='youtube_search'),
+
+    # ─────────────────────────────────────────
+    # NOTIFICATIONS
+    # ─────────────────────────────────────────
+    path('notifications/', views.notifications_view, name='notifications'),
+    path('notifications/unread-count/', views.unread_count_view, name='unread_count'),
 ]
